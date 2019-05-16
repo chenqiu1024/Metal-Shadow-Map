@@ -58,7 +58,7 @@ class Renderer: NSObject {
   
   init(device: MTLDevice) {
     self.device = device
-    commandQueue = device.makeCommandQueue()
+    commandQueue = device.makeCommandQueue()!
     super.init()
     
     buildPipelineState()
@@ -91,7 +91,7 @@ class Renderer: NSObject {
   }
   
   private func buildPipelineState() {
-    let library = device.newDefaultLibrary()
+    let library = device.makeDefaultLibrary()
     let vertexFunction = library?.makeFunction(name: "vertex_shader")
     let fragmentFunction = library?.makeFunction(name: "fragment_shader")
     
@@ -211,7 +211,7 @@ extension Renderer: MTKViewDelegate {
     let deltaTime = 1/Float(view.preferredFramesPerSecond)
     
     let commandBuffer = commandQueue.makeCommandBuffer()
-    var encoder = commandBuffer.makeRenderCommandEncoder(descriptor: shadowRenderPassDescriptor)
+    var encoder = commandBuffer!.makeRenderCommandEncoder(descriptor: shadowRenderPassDescriptor)!
     
     // shadow pass
     
@@ -228,12 +228,12 @@ extension Renderer: MTKViewDelegate {
     encoder.setFrontFacing(.counterClockwise)
     encoder.setVertexBytes(&planeConstants,
                                   length: MemoryLayout<Constants>.stride,
-                                  at: 1)
+                                  index: 1)
     encoder.setRenderPipelineState(shadowPipelineState)
     encoder.setDepthStencilState(depthStencilState)
     
     // draw plane
-    encoder.setVertexBuffer(planeVertexBuffer, offset: 0, at: 0)
+    encoder.setVertexBuffer(planeVertexBuffer, offset: 0, index: 0)
     encoder.drawIndexedPrimitives(type: .triangle,
                                          indexCount: planeIndices.count,
                                          indexType: .uint16,
@@ -243,8 +243,8 @@ extension Renderer: MTKViewDelegate {
     // draw cube
     encoder.setVertexBytes(&cubeConstants,
                                   length: MemoryLayout<Constants>.size,
-                                  at: 1)
-    encoder.setVertexBuffer(cubeVertexBuffer, offset: 0, at: 0)
+                                  index: 1)
+    encoder.setVertexBuffer(cubeVertexBuffer, offset: 0, index: 0)
     encoder.drawIndexedPrimitives(type: .triangle,
                                          indexCount: cubeIndices.count,
                                          indexType: .uint16,
@@ -256,7 +256,7 @@ extension Renderer: MTKViewDelegate {
     // main pass
     update(matrix: cameraMatrix, deltaTime: deltaTime)
     
-    encoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor)
+    encoder = commandBuffer!.makeRenderCommandEncoder(descriptor: descriptor)!
     encoder.pushDebugGroup("main pass")
     encoder.label = "main"
     
@@ -266,12 +266,12 @@ extension Renderer: MTKViewDelegate {
     // draw plane
     encoder.setVertexBytes(&planeConstants,
                            length: MemoryLayout<Constants>.stride,
-                           at: 1)
+                           index: 1)
     encoder.setRenderPipelineState(pipelineState)
     encoder.setDepthStencilState(depthStencilState)
     
-    encoder.setFragmentTexture(shadowTexture, at: 0)
-    encoder.setVertexBuffer(planeVertexBuffer, offset: 0, at: 0)
+    encoder.setFragmentTexture(shadowTexture, index: 0)
+    encoder.setVertexBuffer(planeVertexBuffer, offset: 0, index: 0)
     encoder.drawIndexedPrimitives(type: .triangle,
                                   indexCount: planeIndices.count,
                                   indexType: .uint16,
@@ -281,8 +281,8 @@ extension Renderer: MTKViewDelegate {
     // draw cube
     encoder.setVertexBytes(&cubeConstants,
                            length: MemoryLayout<Constants>.stride,
-                           at: 1)
-    encoder.setVertexBuffer(cubeVertexBuffer, offset: 0, at: 0)
+                           index: 1)
+    encoder.setVertexBuffer(cubeVertexBuffer, offset: 0, index: 0)
     encoder.drawIndexedPrimitives(type: .triangle,
                                   indexCount: cubeIndices.count,
                                   indexType: .uint16,
@@ -300,10 +300,10 @@ extension Renderer: MTKViewDelegate {
     // draw "light"
     encoder.setVertexBytes(&lightConstants,
                            length: MemoryLayout<Constants>.stride,
-                           at: 1)
-    encoder.setVertexBuffer(lightVertexBuffer, offset: 0, at: 0)
+                           index: 1)
+    encoder.setVertexBuffer(lightVertexBuffer, offset: 0, index: 0)
     var color = float4(1, 1, 0, 1)
-    encoder.setFragmentBytes(&color, length: MemoryLayout<float4>.stride, at: 1)
+    encoder.setFragmentBytes(&color, length: MemoryLayout<float4>.stride, index: 1)
     
     encoder.drawIndexedPrimitives(type: .triangle,
                                   indexCount: cubeIndices.count,
@@ -315,8 +315,8 @@ extension Renderer: MTKViewDelegate {
     encoder.endEncoding()
 
     
-    commandBuffer.present(drawable)
-    commandBuffer.commit()
+    commandBuffer!.present(drawable)
+    commandBuffer!.commit()
   }
 }
 
